@@ -14,6 +14,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -73,6 +74,7 @@ import static android.R.id.list;
 import static android.R.id.title;
 import static android.media.MediaFormat.KEY_DURATION;
 import static com.example.asus.zhihunews.R.id.action0;
+import static com.example.asus.zhihunews.R.id.home;
 import static com.example.asus.zhihunews.R.id.listview;
 import static com.example.asus.zhihunews.R.id.toolbar;
 
@@ -80,18 +82,17 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ListView listView;  //新闻列表
-    private  ArrayList<NEWS> listNewsBean = new ArrayList<NEWS>();
+    private  ArrayList<NEWS> listNewsBean; //新闻集合
     private NewsAdapter newsAdapter;  //主屏幕适配器
     private ArrayAdapter<String> adapter;  //左菜单适配器
     private String[] menudata = {"首页", "日常心理学", "用户推荐日报", "电影日报", "不许无聊", "设计日报",
             "大公司日报", "财经日报", "互联网安全", "开始游戏", "音乐日报", "动漫日报", "体育日报"};
-    private static String API = "http://news-at.zhihu.com/api/4/news/latest";
+    private static String API = "https://news-at.zhihu.com/api/4/news/latest";
+
     private android.os.Handler mHandler = new android.os.Handler(){
         public void handleMessage(Message msg) {
-
             listNewsBean = (ArrayList<NEWS>) msg.obj;
             newsAdapter = new NewsAdapter(MainActivity.this, listNewsBean);
-
         }
     };
 
@@ -112,11 +113,10 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setHomeAsUpIndicator(R.drawable.menu);
         }
         listView.setAdapter(newsAdapter);
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-                listNewsBean =getNetNews(MainActivity.this, API);
+                ArrayList<NEWS> listNewsBean =getNetNews(MainActivity.this, API);
                 Message message = Message.obtain();
                 message.obj = listNewsBean;
                 mHandler.sendMessage(message);
@@ -152,29 +152,26 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            //SquaredImageView view = (SquaredImageView) convertView;
             ViewHolder viewHolder;
             if (convertView == null) {
                 convertView = mLayoutInflater.inflate(R.layout.home, null);
-               // view = new SquaredImageView(context);
                 viewHolder = new ViewHolder();
-                viewHolder.img_icon = (MyImageView) convertView.findViewById(R.id.icon);
+                viewHolder.img_icon = (ImageView) convertView.findViewById(R.id.icon);
                 viewHolder.news_title = (TextView) convertView.findViewById(R.id.Title);
                 convertView.setTag(viewHolder);
             } else {
 
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            //String url = getItem(position);
-            //Picasso.with(context).load(url).into(view);
+            String image_url = NewsData.get(position).getIcon_URL();
+            Picasso.with(MainActivity.this).load(image_url).into(viewHolder.img_icon);
             NEWS news = NewsData.get(position);
-            viewHolder.img_icon.setImageUrl(news.getIcon_URL());
             viewHolder.news_title.setText(news.getTitle());
             return convertView;
         }
 
         class ViewHolder {
-            MyImageView img_icon;
+            ImageView img_icon;
             TextView news_title;
         }
     }
@@ -200,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-        public static String convertStream(InputStream is) {  /*转换成string字符流*/
+        public  String convertStream(InputStream is) {  /*转换成string字符流*/
             String result = "";
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             byte[] bt = new byte[1024];
@@ -220,87 +217,45 @@ public class MainActivity extends AppCompatActivity {
             return result;
         }
 
-        public class MyImageView extends ImageView {
-            private android.os.Handler mHandler = new android.os.Handler() {
-                public void handleMessage(android.os.Message msg) {
-                    Bitmap bitmap = (Bitmap) msg.obj;
-                    MyImageView.this.setImageBitmap(bitmap);
-                }
-            };
-
-            public MyImageView(Context context) {
-                super(context);
-            }
-
-            public MyImageView(Context context, AttributeSet attrs) {
-                super(context, attrs);
-            }
-
-
-            public void setImageUrl(final String urlString) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            URL url = new URL(urlString);
-                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                            conn.setRequestMethod("GET");
-                            conn.setConnectTimeout(5 * 1000);
-                            int code = conn.getResponseCode();
-                            if (code == 200) {
-                                InputStream is = conn.getInputStream();
-                                Bitmap bitmap = BitmapFactory.decodeStream(is);
-                                Message message = Message.obtain();
-                                message.obj = bitmap;
-                                mHandler.sendMessage(message);
-                            }
-                        } catch (Exception e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
-            }
-        }
-
- public  ArrayList<NEWS> getNetNews(Context context, String urlString) {    /*获取并解析数据*/
-    NEWS news=new NEWS();
-    ArrayList<NEWS> listNews = new ArrayList<NEWS>();
-    HttpURLConnection connection = null;
-    BufferedReader reader = null;
-    try {
-        URL Url = new URL(urlString);
-        connection = (HttpURLConnection) Url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(10000);
-        connection.setReadTimeout(10000);
-        InputStream in = connection.getInputStream();
-        String response = convertStream(in);
-        JSONObject root_json = new JSONObject(response);
-        JSONArray jsonArray = root_json.getJSONArray("stories");
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject news_json = jsonArray.getJSONObject(i);
-            news.setTitle(news_json.getString("title"));
-            JSONArray imagesArray = news_json.getJSONArray("images");
-            news.setIcon_URL(imagesArray.getString(0));
-            listNews.add(news);
-        } in.close();
-    }catch (Exception e) {
-        e.printStackTrace();
-    } finally {
-        if (reader != null) {
+        public ArrayList<NEWS> getNetNews(Context context, String urlString) {    /*获取并解析数据*/
+            NEWS news = new NEWS();
+            ArrayList<NEWS> listNews = new ArrayList<NEWS>();
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
             try {
-                reader.close();
-            } catch (IOException e) {
+                URL Url = new URL(urlString);
+                connection = (HttpURLConnection) Url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                InputStream in = connection.getInputStream();
+                String response = convertStream(in);
+                JSONObject root_json = new JSONObject(response);
+                JSONArray jsonArray = root_json.getJSONArray("stories");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject news_json = jsonArray.getJSONObject(i);
+                    news.setTitle(news_json.getString("title"));
+                    JSONArray imagesArray = news_json.getJSONArray("images");
+                    news.setIcon_URL(imagesArray.getString(0));
+                    listNews.add(news);
+                }
+                in.close();
+            } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                }
             }
-            if (connection != null) {
-                connection.disconnect();
-            }
+            return listNews;
         }
-    }
-    return listNews;
-}
 
     public class NEWS {
         private String title;
@@ -319,6 +274,5 @@ public class MainActivity extends AppCompatActivity {
             this.icon_URL = icon_URL;
         }
     }
-
 
 }
