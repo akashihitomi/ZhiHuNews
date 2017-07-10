@@ -12,7 +12,7 @@
 
         />
 
-    <com.example.netnewsdemo.myview.MyImageView
+    <ImageView
         android:id="@+id/icon"
         android:layout_toRightOf="@id/Title"
         android:layout_width="85dp"

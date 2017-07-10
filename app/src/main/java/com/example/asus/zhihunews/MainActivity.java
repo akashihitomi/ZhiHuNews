@@ -52,15 +52,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -70,9 +62,14 @@ import static android.R.attr.action;
 import static android.R.attr.data;
 import static android.R.attr.duration;
 import static android.R.attr.reparent;
+import static android.R.attr.restoreAnyVersion;
 import static android.R.id.list;
+import static android.R.id.message;
 import static android.R.id.title;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static android.media.MediaFormat.KEY_DURATION;
+
+
 import static com.example.asus.zhihunews.R.id.action0;
 import static com.example.asus.zhihunews.R.id.home;
 import static com.example.asus.zhihunews.R.id.listview;
@@ -92,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
     private android.os.Handler mHandler = new android.os.Handler(){
         public void handleMessage(Message msg) {
             listNewsBean = (ArrayList<NEWS>) msg.obj;
-            newsAdapter = new NewsAdapter(MainActivity.this, listNewsBean);
+            newsAdapter = new NewsAdapter(MyApplication.getContext(), listNewsBean);
+            Log.d("MainActivity", "adapter success and list.size = "+listNewsBean.size());
+            listView.setAdapter(newsAdapter);
         }
     };
 
@@ -101,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         listView = (ListView) findViewById(listview);  //今日新闻列表
-        adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, menudata);  //左菜单
+        adapter = new ArrayAdapter<String>(MyApplication.getContext(), android.R.layout.simple_list_item_1, menudata);  //左菜单
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.draw_layout);
@@ -112,68 +111,17 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.menu);
         }
-        listView.setAdapter(newsAdapter);
+        System.out.println("MainActivity:"+newsAdapter);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<NEWS> listNewsBean =getNetNews(MainActivity.this, API);
+                ArrayList<NEWS> listNewsBean = getNetNews.getNews(MyApplication.getContext(),API);
                 Message message = Message.obtain();
                 message.obj = listNewsBean;
                 mHandler.sendMessage(message);
             }
         }).start();
-    }
 
-
-    public class NewsAdapter extends BaseAdapter {
-        private LayoutInflater mLayoutInflater;
-        private List<NEWS> NewsData;
-
-        public NewsAdapter(Context context, List<NEWS> listNewsBean) {
-            this.mLayoutInflater = LayoutInflater.from(context);
-            this.NewsData = listNewsBean;
-        }
-
-        @Override
-        public int getCount() {
-            return NewsData.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return NewsData.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            ViewHolder viewHolder;
-            if (convertView == null) {
-                convertView = mLayoutInflater.inflate(R.layout.home, null);
-                viewHolder = new ViewHolder();
-                viewHolder.img_icon = (ImageView) convertView.findViewById(R.id.icon);
-                viewHolder.news_title = (TextView) convertView.findViewById(R.id.Title);
-                convertView.setTag(viewHolder);
-            } else {
-
-                viewHolder = (ViewHolder) convertView.getTag();
-            }
-            String image_url = NewsData.get(position).getIcon_URL();
-            Picasso.with(MainActivity.this).load(image_url).into(viewHolder.img_icon);
-            NEWS news = NewsData.get(position);
-            viewHolder.news_title.setText(news.getTitle());
-            return convertView;
-        }
-
-        class ViewHolder {
-            ImageView img_icon;
-            TextView news_title;
-        }
     }
 
     public boolean onCreateOptionMenu(Menu menu) {
@@ -184,10 +132,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.login:
-                Toast.makeText(this, "点击会跳转至知乎登陆界面", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyApplication.getContext(), "点击会跳转至知乎登陆界面", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.setting:
-                Toast.makeText(this, "点击会跳转至设置界面", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyApplication.getContext(), "点击会跳转至设置界面", Toast.LENGTH_SHORT).show();
                 break;
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
@@ -195,84 +143,6 @@ public class MainActivity extends AppCompatActivity {
             default:
         }
         return true;
-    }
-
-        public  String convertStream(InputStream is) {  /*转换成string字符流*/
-            String result = "";
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            byte[] bt = new byte[1024];
-            int len = 0;
-            try {
-                while ((len = is.read(bt)) != -1) {
-                    bos.write(bt, 0, len);
-                    bos.flush();
-                }
-                result = new String(bos.toByteArray(), "utf-8");
-                result = bos.toString();
-                bos.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            return result;
-        }
-
-        public ArrayList<NEWS> getNetNews(Context context, String urlString) {    /*获取并解析数据*/
-            NEWS news = new NEWS();
-            ArrayList<NEWS> listNews = new ArrayList<NEWS>();
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-            try {
-                URL Url = new URL(urlString);
-                connection = (HttpURLConnection) Url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                InputStream in = connection.getInputStream();
-                String response = convertStream(in);
-                JSONObject root_json = new JSONObject(response);
-                JSONArray jsonArray = root_json.getJSONArray("stories");
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject news_json = jsonArray.getJSONObject(i);
-                    news.setTitle(news_json.getString("title"));
-                    JSONArray imagesArray = news_json.getJSONArray("images");
-                    news.setIcon_URL(imagesArray.getString(0));
-                    listNews.add(news);
-                }
-                in.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (connection != null) {
-                        connection.disconnect();
-                    }
-                }
-            }
-            return listNews;
-        }
-
-    public class NEWS {
-        private String title;
-        private String  icon_URL;
-
-        public String getTitle() {
-            return title;
-        }
-        public void setTitle(String title) {
-            this.title = title;
-        }
-        public String getIcon_URL() {
-            return icon_URL;
-        }
-        public void setIcon_URL(String  icon_URL) {
-            this.icon_URL = icon_URL;
-        }
     }
 
 }
