@@ -5,6 +5,7 @@ import android.app.Application;
 import android.app.DownloadManager;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -23,6 +24,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -63,6 +68,7 @@ import static android.R.attr.data;
 import static android.R.attr.duration;
 import static android.R.attr.reparent;
 import static android.R.attr.restoreAnyVersion;
+import static android.R.attr.start;
 import static android.R.id.list;
 import static android.R.id.message;
 import static android.R.id.title;
@@ -74,10 +80,12 @@ import static com.example.asus.zhihunews.R.id.action0;
 import static com.example.asus.zhihunews.R.id.home;
 import static com.example.asus.zhihunews.R.id.listview;
 import static com.example.asus.zhihunews.R.id.toolbar;
+import static com.example.asus.zhihunews.R.layout.webview;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
+    private WebView webView ; //新闻详细内容
     private ListView listView;  //新闻列表
     private  ArrayList<NEWS> listNewsBean; //新闻集合
     private NewsAdapter newsAdapter;  //主屏幕适配器
@@ -85,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private String[] menudata = {"首页", "日常心理学", "用户推荐日报", "电影日报", "不许无聊", "设计日报",
             "大公司日报", "财经日报", "互联网安全", "开始游戏", "音乐日报", "动漫日报", "体育日报"};
     private static String API = "https://news-at.zhihu.com/api/4/news/latest";
+    //private static String newsAPI = "https://news-at.zhihu.com/api/4/news/";
 
     private android.os.Handler mHandler = new android.os.Handler(){
         public void handleMessage(Message msg) {
@@ -99,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listView = (ListView) findViewById(listview);  //今日新闻列表
+        listView = (ListView) findViewById(R.id.listview);  //今日新闻列表
         adapter = new ArrayAdapter<String>(MyApplication.getContext(), android.R.layout.simple_list_item_1, menudata);  //左菜单
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -111,17 +120,29 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.menu);
         }
-        System.out.println("MainActivity:"+newsAdapter);
+        System.out.println("MainActivity:" + newsAdapter);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<NEWS> listNewsBean = getNetNews.getNews(MyApplication.getContext(),API);
+                ArrayList<NEWS> listNewsBean = getNetNews.getNews(MyApplication.getContext(), API);
                 Message message = Message.obtain();
                 message.obj = listNewsBean;
                 mHandler.sendMessage(message);
             }
         }).start();
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MyApplication.getContext(), listNewsBean.get(position).getID(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MyApplication.getContext(),NewsActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("ID",listNewsBean.get(position).getID());
+                intent.putExtras(bundle);
+                MyApplication.getContext().startActivity(intent);
+
+            }
+        });
     }
 
     public boolean onCreateOptionMenu(Menu menu) {
