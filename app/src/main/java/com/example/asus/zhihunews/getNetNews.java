@@ -15,7 +15,9 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import static android.R.id.message;
+import static android.content.ContentValues.TAG;
 import static android.media.tv.TvContract.Programs.Genres.NEWS;
+import static java.lang.System.in;
 
 public class getNetNews {
     public static ArrayList<NEWS> getNews(Context context, String urlString) {    /*获取并解析数据*/
@@ -45,10 +47,12 @@ public class getNetNews {
                 News.setIcon_URL(imagesArray.getString(0));  //获取图片url
                 News.setID(news_json.getString("id")); //获取ID
                 listNews.add(News);
-                Log.d("MainActivity", news_json.getString("title"));
-                Log.d("MainActivity", imagesArray.getString(0));
-                Log.d("MainActivity", news_json.getString("id"));
+               // Log.d("MainActivity", news_json.getString("title"));
+                //Log.d("MainActivity", imagesArray.getString(0));
+               // Log.d("MainActivity", news_json.getString("id"));
             }
+            //db数据操作
+
             in.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,28 +60,35 @@ public class getNetNews {
         return listNews;
     }
 
-    /*public static int getshareUrl(String NewsUrl) {
-        NEWS news = new NEWS() ;
-        HttpURLConnection con = null;
-        BufferedReader reader = null;
+    public static NEWS getCollNews( String urlString) {    /*解析单条新闻数据*/
+    NEWS CollNews = new NEWS();
+    HttpURLConnection connection = null;
+    BufferedReader reader = null;
         try {
-            URL newsUrl = new URL(NewsUrl);
-            con = (HttpURLConnection) newsUrl.openConnection();
-            con.setRequestMethod("GET");
-            con.setConnectTimeout(8000);
-            con.setReadTimeout(8000);
-            InputStream in = con.getInputStream();
-            reader = new BufferedReader(new InputStreamReader(in));
-            StringBuilder res = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                res.append(line);
-            }
-            JSONObject json = new JSONObject(res.toString());
-            news.setID(json.getString("id"));
-        } catch (Exception e) {
-            e.printStackTrace();
+        URL Url = new URL(urlString);
+        connection = (HttpURLConnection) Url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(8000);
+        connection.setReadTimeout(8000);
+        InputStream is = connection.getInputStream();  //有bug
+        reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
         }
-        return news.getID();
-    }*/
+        JSONObject root_json = new JSONObject(response.toString());
+            CollNews.setTitle(root_json.getString("title"));  //获取标题
+            JSONArray imagesArray = root_json.getJSONArray("images");
+            CollNews.setIcon_URL(imagesArray.getString(0));  //获取图片url
+           // CollNews.setID(news_json.getString("id")); //获取ID
+            Log.d("MainActivity", root_json.getString("title"));
+            Log.d("MainActivity", imagesArray.getString(0));
+            Log.d("MainActivity", root_json.getString("id"));
+        is.close();
+     } catch (Exception e) {
+        e.printStackTrace();
+     }
+        return CollNews;
+  }
 }

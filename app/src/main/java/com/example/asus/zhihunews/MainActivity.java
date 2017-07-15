@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Message;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -30,6 +31,7 @@ import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -76,14 +78,18 @@ import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static android.media.MediaFormat.KEY_DURATION;
 
 
+import static android.os.Build.VERSION_CODES.N;
+import static android.util.Config.LOGD;
 import static com.example.asus.zhihunews.R.id.action0;
 import static com.example.asus.zhihunews.R.id.home;
 import static com.example.asus.zhihunews.R.id.listview;
 import static com.example.asus.zhihunews.R.id.toolbar;
+import static com.example.asus.zhihunews.R.layout.activity_main;
 import static com.example.asus.zhihunews.R.layout.webview;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
+    public static final String NAME_KEY = "ID";
     private ListView mDrawerList;
     private WebView webView ; //新闻详细内容
     private ListView listView;  //新闻列表
@@ -93,13 +99,12 @@ public class MainActivity extends AppCompatActivity {
     private String[] menudata = {"首页", "日常心理学", "用户推荐日报", "电影日报", "不许无聊", "设计日报",
             "大公司日报", "财经日报", "互联网安全", "开始游戏", "音乐日报", "动漫日报", "体育日报"};
     private static String API = "https://news-at.zhihu.com/api/4/news/latest";
-    //private static String newsAPI = "https://news-at.zhihu.com/api/4/news/";
 
     private android.os.Handler mHandler = new android.os.Handler(){
         public void handleMessage(Message msg) {
             listNewsBean = (ArrayList<NEWS>) msg.obj;
             newsAdapter = new NewsAdapter(MyApplication.getContext(), listNewsBean);
-            Log.d("MainActivity", "adapter success and list.size = "+listNewsBean.size());
+            //Log.d("MainActivity", "adapter success and list.size = "+listNewsBean.size());
             listView.setAdapter(newsAdapter);
         }
     };
@@ -113,13 +118,31 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.draw_layout);
+        NavigationView navview = (NavigationView) findViewById(R.id.nav_view);
         ActionBar actionBar = getSupportActionBar();  //菜单按钮
-        mDrawerList = (ListView) findViewById(R.id.leftlist);  //左菜单
-        mDrawerList.setAdapter(adapter);   //左菜单
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.menu);
         }
+        navview.setCheckedItem(R.id.nav_first);
+        navview.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                mDrawerLayout.closeDrawers();
+                return true;
+            }
+        });
+                          //先获取当前布局的填充器
+        //View v =View.inflate(MyApplication.getContext(),R.layout.nav_header, null);
+         Button collection = (Button) findViewById(R.id.collection1);  //我的收藏
+        collection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick (View v) {
+
+                Intent intent=  new Intent(MainActivity.this, CollActivity.class);
+                startActivity(intent);
+            }
+        });
         System.out.println("MainActivity:" + newsAdapter);
         new Thread(new Runnable() {
             @Override
@@ -137,23 +160,23 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MyApplication.getContext(), listNewsBean.get(position).getID(), Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(MyApplication.getContext(),NewsActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("ID",listNewsBean.get(position).getID());
+                bundle.putString(NAME_KEY,listNewsBean.get(position).getID());
                 intent.putExtras(bundle);
+                Log.d("MainActivity", "bundle data is " + bundle);
                 MyApplication.getContext().startActivity(intent);
-
             }
         });
     }
 
-    public boolean onCreateOptionMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar, menu);
         return true;
     }
 
-    public boolean onOptionItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.login:
-                Toast.makeText(MyApplication.getContext(), "点击会跳转至知乎登陆界面", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyApplication.getContext(), "点击会跳转至消息界面", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.setting:
                 Toast.makeText(MyApplication.getContext(), "点击会跳转至设置界面", Toast.LENGTH_SHORT).show();

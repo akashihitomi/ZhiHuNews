@@ -5,7 +5,7 @@
         android:id="@+id/login"
         android:icon="@drawable/login"
         android:title="login"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         />
 
      <item

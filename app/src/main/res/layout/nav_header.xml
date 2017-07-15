@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="120dp"
+    android:padding="10dp"
+    android:background="?attr/colorPrimary">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/head_image"
+        android:src="@drawable/head_iamge"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        />
+
+    <TextView
+        android:id="@+id/username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="刘看山"
+        android:textColor="#FFF"
+        android:textSize="15sp"
+        android:layout_toRightOf="@id/head_image"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="20dp"
+        />
+
+    <Button
+        android:id="@+id/collection"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="我的收藏"
+        android:background="#789456"
+        android:textColor="#FFF"
+        android:textSize="17sp"
+        android:layout_marginTop="80dp"
+
+        />
+
+    <Button
+        android:id="@+id/share"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="   离线下载"
+        android:textColor="#FFF"
+        android:background="#789456"
+        android:textSize="17sp"
+        android:layout_toRightOf="@id/collection"
+        android:layout_marginTop="80dp"
+        />
+</RelativeLayout>
