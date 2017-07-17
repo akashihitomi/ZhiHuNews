@@ -61,10 +61,9 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.draw_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
-        /*if(navigationView.getHeaderCount() > 0) {
+        if(navigationView.getHeaderCount() > 0) {
             View headerView = navigationView.getHeaderView(0);
-            Log.d("head", "headerview is " + headerView.isShown());
-            Button collection = (Button) headerView.findViewById(R.id.collection1);
+            Button collection = (Button) headerView.findViewById(R.id.collection);
             collection.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View headView) {
@@ -72,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             });
-        }*/
+        }
 
         ActionBar actionBar = getSupportActionBar();  //菜单按钮
         if (actionBar != null) {
@@ -83,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
-                Intent intent = new Intent(MainActivity.this, CollActivity.class);
-                startActivity(intent);
+                mDrawerLayout.closeDrawers();
                 return true;
             }
         });
@@ -93,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-               MyApplication.getContext().deleteDatabase(newDBHelper.DBNAME);
-                Log.d("delete", "the DB has been deleted");   //删除数据库
+                //MyApplication.getContext().deleteDatabase(newDBHelper.DBNAME);
+                //Log.d("delete", "the DB has been deleted");   //删除数据库
                 ArrayList<NEWS> listNewsBean = getNetNews.getNews(MyApplication.getContext(), API);
                 Message message = Message.obtain();
                 message.obj = listNewsBean;
@@ -118,6 +116,12 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar, menu);
+        return true;
+    }
+
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(Menu.NONE, R.menu.toolbar, 0, "设置").setIcon(R.drawable.collected);
         return true;
     }
 

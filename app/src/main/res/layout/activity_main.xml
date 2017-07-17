@@ -49,7 +49,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
-        android:background="#444444"
+        android:background="#ffffff"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp"
         app:menu="@menu/nav_menu"
