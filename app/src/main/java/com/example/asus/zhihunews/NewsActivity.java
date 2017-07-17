@@ -33,7 +33,6 @@ public class NewsActivity extends AppCompatActivity {
         setContentView(R.layout.webview);
         Toolbar news_toolbar = (Toolbar) findViewById(R.id.News_toolbar); //新闻详细内容toolbar
         setSupportActionBar(news_toolbar);
-
         WebView webView = (WebView) findViewById(R.id.Webview);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         news_toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -54,26 +53,48 @@ public class NewsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.collect:
+                    if(item.getTitle().equals("收藏")) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                NewsDBUtils newsDBUtils = new NewsDBUtils(MyApplication.getContext());
+                                String NewsUrl = newsUrl + getIDl();
+                                Log.d("URL", "getTD =  " + getIDl());
+                                Log.d("URL", "NewsUrl =  " + NewsUrl);
+                                NEWS new1 = getNetNews.getCollNews(NewsUrl); //返回需要收藏的新闻对象
+                                newsDBUtils.Insertnews(new1);  //存储数据至数据库
+                                Log.d("collection", "save ID is  " + new1.getID());
+                                Log.d("collection", "save title is  " + new1.getTitle());
+                                Log.d("collection", "save imageUrl is  " + new1.getIcon_URL());
+                            }
+                        }).start();
+                        item.setIcon(R.drawable.collected);
+                        item.setTitle("取消收藏");
+                        Toast.makeText(MyApplication.getContext(), "收藏成功了哟(*^__^*) ", Toast.LENGTH_SHORT).show();
+                        break;
+                    } else {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                               NewsDBUtils newsDBUtils = new NewsDBUtils(MyApplication.getContext());
+                                Log.d("SQL", "the ID to delete is " + getIDl());
+                                newsDBUtils.Deletenews(getIDl());
+                            }
+                        }).start();
+                        item.setIcon(R.drawable.collect);
+                        item.setTitle("收藏");
+                        Toast.makeText(this,"竟然取消我？！...好吧收藏已取消", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+
+                case R.id.share:
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            NewsDBUtils newsDBUtils = new NewsDBUtils(MyApplication.getContext());
-                            String NewsUrl = newsUrl + getIDl();
-                            Log.d("URL", "getTD =  "+ getIDl());
-                            Log.d("URL", "NewsUrl =  "+ NewsUrl);
-                            NEWS new1 = getNetNews.getCollNews(NewsUrl); //返回需要收藏的新闻对象
-                            newsDBUtils.Insertnews(new1);  //存储数据至数据库
-                            Log.d("collection", "save ID is  " + new1.getID());
-                            Log.d("collection", "save title is  " + new1.getTitle());
-                            Log.d("collection", "save imageUrl is  " + new1.getIcon_URL());
-
+                            ShareNews sharenews = new ShareNews();
+                            sharenews.shareText();
                         }
                     }).start();
-                    item.setIcon(R.drawable.collected);
-                    Toast.makeText(MyApplication.getContext(),"收藏成功",Toast.LENGTH_SHORT).show();
-                    break;
-                case R.id.share:
-
                     Toast.makeText(MyApplication.getContext(),"系统分享",Toast.LENGTH_SHORT).show();
                     break;
                 default:

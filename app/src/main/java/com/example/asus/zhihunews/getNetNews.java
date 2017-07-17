@@ -81,7 +81,7 @@ public class getNetNews {
             CollNews.setTitle(root_json.getString("title"));  //获取标题
             JSONArray imagesArray = root_json.getJSONArray("images");
             CollNews.setIcon_URL(imagesArray.getString(0));  //获取图片url
-           // CollNews.setID(news_json.getString("id")); //获取ID
+            CollNews.setID(root_json.getString("id")); //获取ID
             Log.d("MainActivity", root_json.getString("title"));
             Log.d("MainActivity", imagesArray.getString(0));
             Log.d("MainActivity", root_json.getString("id"));

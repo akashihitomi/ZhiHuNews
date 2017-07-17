@@ -17,7 +17,7 @@ import static java.sql.Types.REAL;
  */
 
 public class NewDBHelper extends SQLiteOpenHelper{   //创建news DB和列表
-    private static final String DBNAME = "NEWS.db";  //数据库名称
+    public static final String DBNAME = "NEWS.db";  //数据库名称
     private static final int VERSION = 1;
     public static final String TABLE_NAME = "news";  //表名称
     public static final String SQL = "create table " +

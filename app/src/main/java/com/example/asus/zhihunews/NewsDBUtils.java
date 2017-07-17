@@ -31,9 +31,9 @@ public class NewsDBUtils {
         sqlite.close();
     }
 
-    public void Deletenews (){  //删除数据,未完成
+    public void Deletenews (String deleteID){  //删除数据
         SQLiteDatabase db = newDBHelper.getReadableDatabase();
-        db.delete("news", "Id = ?", new String[]{"ID"});
+        db.delete(newDBHelper.TABLE_NAME, "_ID = ?", new String[]{deleteID});
         db.close();
     }
 
