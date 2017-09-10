@@ -119,11 +119,11 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public boolean onPrepareOptionsMenu(Menu menu) {
+   /* public boolean onPrepareOptionsMenu(Menu menu) {     //动态加载toolbar菜单
         super.onCreateOptionsMenu(menu);
-        menu.add(Menu.NONE, R.menu.toolbar, 0, "设置").setIcon(R.drawable.collected);
+        menu.add(Menu.NONE, R.menu.toolbar, 0, "夜间模式").setIcon(R.drawable.collected);
         return true;
-    }
+    }*/
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -131,7 +131,10 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MyApplication.getContext(), "会跳转至消息界面...或者登陆界面", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.setting:
-                Toast.makeText(MyApplication.getContext(), "会跳转至设置界面0-0但是我还没做出来", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MyApplication.getContext(), "夜间模式", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.night:
+                Toast.makeText(MyApplication.getContext(), "设置界面", Toast.LENGTH_SHORT).show();
                 break;
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);

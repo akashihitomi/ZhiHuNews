@@ -18,6 +18,7 @@ import static com.example.asus.zhihunews.getNetNews.getCollNews;
 public class NewsActivity extends AppCompatActivity {
 
     private static final String newsUrl = "https://news-at.zhihu.com/api/4/news/";
+    private boolean ShareOrNot = false ;
 
     public String getIDl() {
         Intent intent = getIntent();
